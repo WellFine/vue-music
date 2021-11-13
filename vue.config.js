@@ -2,6 +2,8 @@
  * vue-cli 已经对 webpack 进行了一层封装，内部已经有 webpack.config.js 文件
  * vue.config.js 就是 vue-cli 脚手架提供的可以修改 webpack 配置的入口文件
  */
+const registerRouter = require('./backend/router')
+
 module.exports = {
   css: {
     loaderOptions: {
@@ -18,6 +20,13 @@ module.exports = {
           @import "@/assets/scss/mixin.scss";
         `
       }
+    }
+  },
+  // webpack 的 devServer 配置可以在本地启动 node server
+  devServer: {
+    // app 就是 express 的一个实例，可以用这个实例搭建后端路由
+    before (app) {
+      registerRouter(app)
     }
   }
 }
