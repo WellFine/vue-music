@@ -84,6 +84,16 @@ vue-router 自带了 `.router-link-active` 这个 active-class，用于 `router-
 
 
 
+## 图片懒加载
+
+图片懒加载是很常见的功能，当图片出现在页面视口中时才按需加载，这样会大大节约带宽，是一种常见的性能优化手段
+
+vue 项目可以使用插件来完成这一功能，[vue-lazyload](https://github.com/hilongjw/vue-lazyload) 目前只支持 vue2.x 版本，vue3 可以使用 [vue3-lazy](https://github.com/ustbhuangyi/vue3-lazy)
+
+vue3-lazy 配置使用见下方第三方库/vue3-lazy
+
+
+
 ## 第三方库
 
 ### [BetterScroll](https://better-scroll.github.io/docs/zh-CN/guide/)
@@ -113,6 +123,26 @@ BetterScroll use 插件后，别忘了开启配置项 `observeDOM: true`
 #### Slide 轮播图
 
 Slide 轮播图在使用时需要至少一条数据，所以采用数组循环时需要判断数组长度，否则数组最开始为空会报错
+
+
+### [vue3-lazy](https://github.com/ustbhuangyi/vue3-lazy) 图片懒加载
+
+vue3-lazy 作为插件使用方便，在 main.js 中 use 插件并配置 loading 时默认图片，然后 img 标签使用 `v-lazy` 指令代替 src 属性即可
+
+```js
+import lazyPlugin from 'vue3-lazy'
+app.use(lazyPlygin, {
+  /**
+   * require 是 webpack 可以识别的语法，可以找到对应的图片，然后使用相应的 loader 来处理
+   * 最终将图片处理为 base64 或把图片变为外链，然后通过外链加载图片
+   */
+  loading: require('default.png')
+})
+```
+
+```html
+<img v-lazy="img.png" />
+```
 
 
 
