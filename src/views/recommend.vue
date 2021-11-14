@@ -1,5 +1,5 @@
 <template>
-  <div class="recommend">
+  <div class="recommend" v-loading:[loadingInfo]="loading">
     <com-scroll class="recommend__scroll">
       <div class="slider-wrapper">
         <div class="slider-content">
@@ -8,7 +8,7 @@
         </div>
       </div>
       <div class="recommend__list">
-        <h2 class="recommend__list__title">热门歌单推荐</h2>
+        <h2 class="recommend__list__title" v-show="!loading">热门歌单推荐</h2>
         <ul>
           <li v-for="item in albums" :key="item.id" class="recommend__list__item">
             <img v-lazy="item.pic" width="60" height="60" />
@@ -35,10 +35,16 @@ export default {
     ComScroll: Scroll,
     ComSlider: Slider
   },
+  computed: {
+    loading () {
+      return !this.sliders.length && !this.albums.length
+    }
+  },
   data () {
     return {
       sliders: [],
-      albums: []
+      albums: [],
+      loadingInfo: '正在载入...'
     }
   },
   async created () {
