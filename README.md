@@ -31,6 +31,16 @@ vue 音乐 web app
 
 
 
+## 图片懒加载
+
+图片懒加载是很常见的功能，当图片出现在页面视口中时才按需加载，这样会大大节约带宽，是一种常见的性能优化手段
+
+vue 项目可以使用插件来完成这一功能，[vue-lazyload](https://github.com/hilongjw/vue-lazyload) 目前只支持 vue2.x 版本，vue3 可以使用 [vue3-lazy](https://github.com/ustbhuangyi/vue3-lazy)
+
+vue3-lazy 配置使用见下方第三方库/vue3-lazy
+
+
+
 ## sass 全局变量和混入函数的全局引入，关于样式引入的问题
 
 在 `main.js` 中引入的样式，只有是实际的 CSS 样式才会在整个项目中生效，而 variable 变量和 mixin 函数都不是实体的 CSS 样式，而是一种 sass 定义，是给 sass 用的，所以在 main.js 引入是没有意义的
@@ -74,23 +84,35 @@ module.exports = {
 
 ## 路由相关
 
-## 路由重定向
+### 路由重定向
 
 首页 `/` 和某个路由如 `/recommend` 展示同一个视图组件时，可以使用 `redirect` 将 `/` 重定向到 `/recommend`
 
-## vue-router 自带 .router-link-active 链接激活 class
+### vue-router 自带 .router-link-active 链接激活 class
 
 vue-router 自带了 `.router-link-active` 这个 active-class，用于 `router-link` 在选中激活时方便的设置样式
 
 
 
-## 图片懒加载
+## 自定义指令
 
-图片懒加载是很常见的功能，当图片出现在页面视口中时才按需加载，这样会大大节约带宽，是一种常见的性能优化手段
+```js
+// 全局注册
+const directive = {
+  mounted (el, binding) {} // 在指令绑定元素的父组件被挂载后调用
+  updated (el, binding) {} // 在包含组件的 VNode 及其子组件的 VNode 更新后调用
+}
 
-vue 项目可以使用插件来完成这一功能，[vue-lazyload](https://github.com/hilongjw/vue-lazyload) 目前只支持 vue2.x 版本，vue3 可以使用 [vue3-lazy](https://github.com/ustbhuangyi/vue3-lazy)
+app.directive('directiveName', directive)
+```
 
-vue3-lazy 配置使用见下方第三方库/vue3-lazy
+### v-loading 加载动画组件
+
+加载动画非常常见，自定义组件后在需要使用的地方用 v-if 判断显示即可
+
+但是这样做需要经过引入组件、声明组件、v-if 判断插入组件一系列操作，比较麻烦，不够优雅
+
+可以自定义一个 `v-loading` 指令，在需要用到加载动画的地方用 v-loading 指令并传入一个布尔值，当布尔值为 true 时就会插入加载动画组件，还可以用动态参数来传入加载提示文字，详情查看 `./src/components/base/loading/directive.js`
 
 
 
