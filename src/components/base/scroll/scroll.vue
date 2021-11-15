@@ -1,9 +1,6 @@
 <template>
   <div ref="rootRef">
-    <!-- BetterScroll 只针对第一个子元素生效，所以套一层 div -->
-    <div>
-      <slot></slot>
-    </div>
+    <slot></slot>
   </div>
 </template>
 
@@ -26,10 +23,11 @@
     emits: ['scroll'],
     setup (props, { emit }) {
       const rootRef = ref(null)
-      useScroll(rootRef, props, emit)
+      const scroll = useScroll(rootRef, props, emit)
 
       return {
-        rootRef
+        rootRef,
+        scroll
       }
     }
   }

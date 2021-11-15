@@ -27,7 +27,5 @@ export default function useScroll (wrapperRef, options, emit) {
     scroll.value.destroy()
   })
 
-  return {
-    scroll
-  }
+  return scroll
 }

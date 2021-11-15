@@ -1,23 +1,26 @@
 <template>
   <div class="recommend" v-loading:[loadingInfo]="loading">
     <com-scroll class="recommend__scroll">
-      <div class="slider-wrapper">
-        <div class="slider-content">
-          <!-- slider 在使用时要求至少有一条数据，而 sliders 数组初始化时为空，所以需要 v-if 判断 -->
-          <com-slider v-if="sliders.length > 0" :sliders="sliders" />
+      <!-- BetterScroll 只针对第一个子元素生效，所以套一层 div -->
+      <div>
+        <div class="slider-wrapper">
+          <div class="slider-content">
+            <!-- slider 在使用时要求至少有一条数据，而 sliders 数组初始化时为空，所以需要 v-if 判断 -->
+            <com-slider v-if="sliders.length > 0" :sliders="sliders" />
+          </div>
         </div>
-      </div>
-      <div class="recommend__list">
-        <h2 class="recommend__list__title" v-show="!loading">热门歌单推荐</h2>
-        <ul>
-          <li v-for="item in albums" :key="item.id" class="recommend__list__item">
-            <img v-lazy="item.pic" width="60" height="60" />
-            <div class="item__info">
-              <h3 class="item__info__name">{{ item.username }}</h3>
-              <p class="item__info__description">{{ item.title }}</p>
-            </div>
-          </li>
-        </ul>
+        <div class="recommend__list">
+          <h2 class="recommend__list__title" v-show="!loading">热门歌单推荐</h2>
+          <ul>
+            <li v-for="item in albums" :key="item.id" class="recommend__list__item">
+              <img v-lazy="item.pic" width="60" height="60" />
+              <div class="item__info">
+                <h3 class="item__info__name">{{ item.username }}</h3>
+                <p class="item__info__description">{{ item.title }}</p>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
     </com-scroll>
   </div>
