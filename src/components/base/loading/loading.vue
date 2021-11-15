@@ -16,7 +16,7 @@
     name: 'loading',
     data () {
       return {
-        info: ''
+        info: '正在载入...'
       }
     },
     methods: {
