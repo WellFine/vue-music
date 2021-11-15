@@ -4,6 +4,8 @@ vue 音乐 web app
 
 安装：`npm install`，运行：`npm run serve`
 
+[TOC]
+
 # 项目知识点
 
 ## 图片 @2x 和 @3x 与 dpi
@@ -116,6 +118,26 @@ app.directive('directiveName', directive)
 
 
 
+## 移动端事件
+
+* touchstart: 手指触摸到屏幕会触发
+* touchmove: 手指在屏幕上移动时触发
+* touchend: 手指离开屏幕时触发
+
+BetterScroll 也是基于 touch 类事件实现的滚动
+
+
+
+## 事件委托
+
+在一个长列表中, 如果每个列表元素都要绑定一个事件处理相同的逻辑, 可以给列表容器添加事件, 通过冒泡形式触发事件, 然后通过事件对象的 `target` 获取触发元素
+
+这样绑定事件变少, 性能会更好
+
+如 `./src/components/base/index-list/index-list.vue` 中侧边锚点列表绑定 touch 类事件
+
+
+
 ## 第三方库
 
 ### [BetterScroll](https://better-scroll.github.io/docs/zh-CN/guide/)
@@ -168,6 +190,20 @@ app.use(lazyPlygin, {
 
 
 
+## vue 的使用及 API
+
+### Composition API watch
+
+`watch` 可以直接监听一个 ref，也可以监听一个 getter 函数的返回值。如果监听不是 ref 响应式的数据，应该使用 getter 函数返回
+
+### nextTick 回调延迟
+
+> 官方文档：将回调推迟到下一个 DOM 更新周期之后执行。在更改了一些数据以等待 DOM 更新后立即使用它。
+
+一般在数据变化后，如果想做的操作需要 DOM 更新后才能实现，那么可以使用 `nextTick()` 等待 DOM 更新完成，回调使用 `async await` 更加方便
+
+如 `./src/components/base/index-list/useFixed.js` 中监听数据变化后重新计算 DOM 高度
+
 
 
 # vue 相关思考
@@ -179,15 +215,3 @@ app.use(lazyPlygin, {
 Options API 的优点是结构清晰，是一种描述型的结构，适用于逻辑较少的组件，这样看起来非常清晰。就像 SFC 中使用 template 而不使用 render function 一样，给人一种直观的感觉
 
 Composition API 作为 vue3 一种新推出的开发模式，适用于逻辑复杂或逻辑可重用可抽离的场景。vue3.2 推出了 `<script setup>` 听说很香，总之具体场景具体分析，适合的才是最好的
-
-
-
-
-
-
-
-
-
-
-
-
