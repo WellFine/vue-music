@@ -1,6 +1,6 @@
 # vue-music
 
-vue 音乐 web app
+vue 音乐 web app，项目原作者 [ustbhuangyi](https://github.com/ustbhuangyi)
 
 安装：`npm install`，运行：`npm run serve`
 
@@ -84,40 +84,6 @@ module.exports = {
 
 
 
-## 路由相关
-
-### 路由重定向
-
-首页 `/` 和某个路由如 `/recommend` 展示同一个视图组件时，可以使用 `redirect` 将 `/` 重定向到 `/recommend`
-
-### vue-router 自带 .router-link-active 链接激活 class
-
-vue-router 自带了 `.router-link-active` 这个 active-class，用于 `router-link` 在选中激活时方便的设置样式
-
-
-
-## 自定义指令
-
-```js
-// 全局注册
-const directive = {
-  mounted (el, binding) {} // 在指令绑定元素的父组件被挂载后调用
-  updated (el, binding) {} // 在包含组件的 VNode 及其子组件的 VNode 更新后调用
-}
-
-app.directive('directiveName', directive)
-```
-
-### v-loading 加载动画组件
-
-加载动画非常常见，自定义组件后在需要使用的地方用 v-if 判断显示即可
-
-但是这样做需要经过引入组件、声明组件、v-if 判断插入组件一系列操作，比较麻烦，不够优雅
-
-可以自定义一个 `v-loading` 指令，在需要用到加载动画的地方用 v-loading 指令并传入一个布尔值，当布尔值为 true 时就会插入加载动画组件，还可以用动态参数来传入加载提示文字，详情查看 `./src/components/base/loading/directive.js`
-
-
-
 ## 移动端事件
 
 * touchstart: 手指触摸到屏幕会触发
@@ -125,6 +91,12 @@ app.directive('directiveName', directive)
 * touchend: 手指离开屏幕时触发
 
 BetterScroll 也是基于 touch 类事件实现的滚动
+
+
+
+## 手机调试
+
+开发过程中想要用手机调试，手机和电脑在同一个局域网内时，可以用手机访问项目启动时的 ip 地址，如 `http://192.168.1.3:8080/`
 
 
 
@@ -190,6 +162,12 @@ app.use(lazyPlygin, {
 
 
 
+### [good-storage](https://github.com/ustbhuangyi/storage)
+
+库内部进行了序列化操作，使用这个库可以存储对象格式，该库使用相同 api 支持 sessionStorage 和 localStorage 的存储库
+
+
+
 ## vue 的使用及 API
 
 ### Composition API watch
@@ -203,6 +181,96 @@ app.use(lazyPlygin, {
 一般在数据变化后，如果想做的操作需要 DOM 更新后才能实现，那么可以使用 `nextTick()` 等待 DOM 更新完成，回调使用 `async await` 更加方便
 
 如 `./src/components/base/index-list/useFixed.js` 中监听数据变化后重新计算 DOM 高度
+
+### 依赖收集与临时变量
+
+使用 computed 计算属性时，如果响应式变量使用次数超过 1 次，应该使用一个临时变量缓存起来，这是 vue 常用的性能优化技巧
+
+原因：每次取 `this.响应式变量` 时，实际上会执行响应式变量的[依赖收集](https://zhuanlan.zhihu.com/p/45081605)，依赖收集过程中会执行变量的 `getter` 等进行一系列 JS 操作，如果多次使用 this.响应式变量，就会执行多次依赖收集，造成没必要的资源浪费
+
+
+
+### 自定义指令
+
+```js
+// 全局注册
+const directive = {
+  mounted (el, binding) {} // 在指令绑定元素的父组件被挂载后调用
+  updated (el, binding) {} // 在包含组件的 VNode 及其子组件的 VNode 更新后调用
+}
+
+app.directive('directiveName', directive)
+```
+
+#### v-loading 加载动画组件
+
+加载动画非常常见，自定义组件后在需要使用的地方用 v-if 判断显示即可
+
+但是这样做需要经过引入组件、声明组件、v-if 判断插入组件一系列操作，比较麻烦，不够优雅
+
+可以自定义一个 `v-loading` 指令，在需要用到加载动画的地方用 v-loading 指令并传入一个布尔值，当布尔值为 true 时就会插入加载动画组件，还可以用动态参数来传入加载提示文字，详情查看 `./src/components/base/loading/directive.js`
+
+
+
+### transition
+
+vue3 的 transition 类名进行了升级，`v-enter` 和 `v-leave` 变为了 `v-enter-from` 和 `v-leave-from`，更加语义化了
+
+#### transition 属性
+
+* name：定义过渡类名前缀
+* appear：过渡立即生效
+
+#### transition 与其他组件（如 router-view）结合时的嵌套顺序
+
+vue 提供了很多内置组件，这些内置组件相互结合嵌套使用是常见的情形，而这些组件的嵌套顺序对于它们的正确工作很重要，以下为官方推荐嵌套顺序
+
+```html
+<router-view v-slot="{ Component }">
+  <template v-if="Component">
+    <transition mode="out-in">
+      <keep-alive>
+        <suspense>
+          <component :is="Component"></component>
+          <template #fallback>
+            <div>
+              Loading...
+            </div>
+          </template>
+        </suspense>
+      </keep-alive>
+    </transition>
+  </template>
+</router-view>
+```
+
+
+
+## vue-router 路由相关
+
+### 路由重定向
+
+首页 `/` 和某个路由如 `/recommend` 展示同一个视图组件时，可以使用 `redirect` 将 `/` 重定向到 `/recommend`
+
+### vue-router 自带 .router-link-active 链接激活 class
+
+vue-router 自带了 `.router-link-active` 这个 active-class，用于 `router-link` 在选中激活时方便的设置样式
+
+### 二级路由
+
+如果路由间有父子关系的话，使用嵌套路由会使路由更易于管理。通过配置 `children` 可以实现多层嵌套，children 是一个数组，数组元素就是路由项
+
+注意使用嵌套路由时，记得在父级路由视图组件下放置 `router-view` 标签，这个标签将会承载子路由对应的视图组件
+
+### 动态参数、路径参数
+
+动态参数用 `:` 表示，当一个路由被匹配时，它的 params 的值将在每个组件中以 `this.$route.params` 的形式暴露出来
+
+### 路由 API
+
+* `this.$router.push(entry)` 在历史堆栈中推送一条记录，entry 可以是 String 也可以是一个路由配置项 Object，以编程方式（JS 调用）导航到一个新的 URL
+* `this.$router.back()` 路由回退
+* `this.$router.go(index)` 前进或后退 index 个页面
 
 
 
