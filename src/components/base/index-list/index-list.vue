@@ -10,7 +10,11 @@
       <li v-for="group in data" :key="group.title" class="group">
         <h2 class="group__title">{{ group.title }}</h2>
         <ul>
-          <li v-for="item in group.list" :key="item.id" class="group__item">
+          <li
+            class="group__item"
+            v-for="item in group.list" :key="item.id"
+            @click="onItemClick(item)"
+          >
             <img class="group__item__avatar" v-lazy="item.pic" />
             <span class="group__item__name">{{ item.name }}</span>
           </li>
@@ -62,12 +66,18 @@
     components: {
       ComScroll: Scroll
     },
-    setup (props) {
+    emits: ['select'],
+    setup (props, { emit }) {
       const { groupRef, onScroll, fixedTitle, fixedStyle, currentIndex } = useFixed(props)
 
       const { scrollRef, shortcutList, onShortcutTouchStart, onShortcutTouchMove } = useShortcut(props, groupRef)
 
+      const onItemClick = item => {
+        emit('select', item)
+      }
+
       return {
+        onItemClick,
         // fixed
         groupRef,
         onScroll,
@@ -143,7 +153,7 @@
       position: absolute;
       right: 6px;
       top: 50%;
-      transform: translateY(-50%);
+      transform: translate3d(0, -50%, 0);
       width: 20px;
       padding: 10px 0;
       border-radius: 10px;
