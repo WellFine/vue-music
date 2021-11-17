@@ -210,6 +210,18 @@ app.directive('directiveName', directive)
 
 可以自定义一个 `v-loading` 指令，在需要用到加载动画的地方用 v-loading 指令并传入一个布尔值，当布尔值为 true 时就会插入加载动画组件，还可以用动态参数来传入加载提示文字，详情查看 `./src/components/base/loading/directive.js`
 
+#### v-no-result 没有结果时提示无结果
+
+该指令作用和 v-loading 作用非常相像，所以将 v-loading 的 directive 自定义指令提取成公共的创建指令方法 `./src/assets/js/create-like-loading-directive.js`
+
+定义指令时有为指令作用的 DOM 添加一个 relative 的定位，方便指令对应的 Component 能够使用 absolute 定位定位到指令作用的 DOM 元素中间
+
+指令对应的 Component 只要加上 absolute 就能定位到指令作用的 DOM 元素中间，如 v-no-result 指令
+
+而 v-loading 指令个人认为显示在屏幕中间会好看一点，所以为 v-loading 组件添加了 fixed 定位
+
+**注意：需要处理一种情况，就是多个指令作用在同一个 DOM 元素上时，挂载在 el 上的 instance 会冲突，需要添加多一层组件 name 属性来防止后面的指令 instance 覆盖了前面指令的 instance，造成移除 el.instance 时找不到元素的错误**
+
 
 
 ### transition
@@ -271,6 +283,60 @@ vue-router 自带了 `.router-link-active` 这个 active-class，用于 `router-
 * `this.$router.push(entry)` 在历史堆栈中推送一条记录，entry 可以是 String 也可以是一个路由配置项 Object，以编程方式（JS 调用）导航到一个新的 URL
 * `this.$router.back()` 路由回退
 * `this.$router.go(index)` 前进或后退 index 个页面
+
+
+
+## vuex 全局状态管理工具
+
+* State：全局数据仓库，存储数据
+* Getters：可以理解成 state 的计算属性，基于多个 state 可以计算出新的数据。**注意：从 Vue 3.0 开始，getter 的结果不再像计算属性一样会被缓存起来。这是一个已知的问题，将会在 3.2 版本中修复。详情请看 PR #1878。**
+* Mutations：commit 提交一个 mutation 来修改 state 数据，vuex 中只能通过这种方式修改数据，这是为了保证数据的可追踪性，且 mutation 只支持同步改变数据
+* Actions：action 中可以提交一个或多个 mutation，也可以进行异步操作，所以适合对 mutation 进行封装
+* Modules：Vuex 允许我们将 store 分割成模块（module）。每个模块拥有自己的 state、mutation、action、getter、甚至是嵌套子模块
+
+### vuex 严格模式
+
+开启严格模式后，vuex 会深度 watch 所有的 state，监测 state 状态是不是提交 mutation 修改的，如果不是会报警告
+
+但深度 watch 肯定会带来性能损耗问题，所以一般只在开发环境下开启
+
+```js
+import { createStore } from 'vuex'
+export default createStore({
+  strict: process.env.NODE_ENV !== 'production'
+})
+```
+
+### createLogger 插件查看提交状态
+
+用这个插件，每次进行 vuex 操作都会在控制台打印日志信息
+
+```js
+import { createStore, createLogger } from 'vuex'
+
+const debug = process.env.NODE_ENV !== 'production' // 开发环境进行 debug
+
+export default createStore({
+  plugins: debug ? [ createLogger() ] : [] // 开发环境下使用插件
+})
+```
+
+### mapMutations 与 mapActions
+
+在组件中提交 commit mutation 或分发 dispatch action 需要使用 `this.$store.commit` 或 `this.$store.dispatch`，如果嫌麻烦可以使用 `mapMutations` 和 `mapActions` 将组件中的 methods 映射为 `store.commit` 和 `store.dispatch` 调用
+
+```js
+import { mapMutations, mapActions } from 'vuex'
+export default {
+  methods: {
+    ...mapMutations(['someMutation']), // 将 `this.someMutation` 映射为 `this.$store.commit('someMutation')`
+    ...mapActions({
+      thatAction: 'someAction' // 将 `this.thatAction` 映射为 `this.$store.dispatch('someAction')`
+    })
+  }
+}
+```
+
 
 
 
