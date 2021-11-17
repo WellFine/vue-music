@@ -5,6 +5,12 @@
     </div>
     <h1 class="title">{{ title }}</h1>
     <div class="bg-image" :style="bgImageStyle" ref="bgImage">
+      <div class="play-btn-wrapper" :style="playBtnStyle">
+        <div class="play-btn" v-show="songs.length > 0" @click="randomPlayMusicList">
+          <i class="icon-play"></i>
+          <span class="text">随机播放全部</span>
+        </div>
+      </div>
       <!-- 背景头图的半透明蒙层 -->
       <div class="mask-filter" :style="filterStyle"></div>
     </div>
@@ -16,6 +22,7 @@
       <div class="list-wrapper">
         <song-list
           :songs="songs"
+          @select="onSelectSong"
         ></song-list>
       </div>
     </com-scroll>
@@ -25,6 +32,8 @@
 <script>
   import Scroll from '@/components/base/scroll/scroll'
   import SongList from '@/components/base/song-list/song-list'
+
+  import { mapActions } from 'vuex'
 
   // 滚动歌曲列表时，顶部歌手名字和返回图标 fixed 的高度
   const TOP_FIXED_HEIGHT = 40
@@ -108,6 +117,18 @@
           backdropFilter: `blur(${blur}px)`
         }
       },
+      // 随机播放按钮上拉歌曲列表后，需要改变 bottom 距离底部的距离，以免出现在歌手名字上方
+      playBtnStyle () {
+        let visibility = 'visible' // 默认情况下元素正常显示
+
+        if (this.scrollY >= this.maxTranslateY) {
+          visibility = 'hidden' // 当歌曲列表顶到顶部时隐藏
+        }
+
+        return {
+          visibility
+        }
+      },
       noResult () {
         return !this.songs.length && !this.loading
       }
@@ -127,6 +148,23 @@
 
       onScroll (position) {
         this.scrollY = -position.y
+      },
+
+      /**
+       * 用 vuex 提供的语法糖将 selectPlay 这个 action 注册到当前组件的 methods 中
+       * 在组件中使用 this.$store.dispatch('xxx') 分发 action，或者使用 mapActions 辅助函数将组件的 methods 映射为 store.dispatch 调用
+       */
+      ...mapActions(['selectPlay', 'randomPlay']),
+
+      onSelectSong ({ song, index }) {
+        this.selectPlay({
+          list: this.songs,
+          index
+        })
+      },
+
+      randomPlayMusicList () {
+        this.randomPlay(this.songs)
       }
     }
   }
@@ -172,13 +210,42 @@
       transform-origin: top;
       background-size: cover;
 
+      .play-btn-wrapper {
+        position: absolute;
+        bottom: 30px;
+        z-index: 10;
+        width: 100%;
+        .play-btn {
+          box-sizing: border-box;
+          width: 135px;
+          padding: 7px 0;
+          margin: 0 auto;
+          text-align: center;
+          border: 1px solid $color-theme;
+          color: $color-theme;
+          border-radius: 100px;
+          font-size: 0;
+        }
+        .icon-play {
+          display: inline-block;
+          vertical-align: middle;
+          margin-right: 6px;
+          font-size: $font-size-medium-x;
+        }
+        .text {
+          display: inline-block;
+          vertical-align: middle;
+          font-size: $font-size-small;
+        }
+      }
+
       .mask-filter {
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(7, 17, 27, .4)
+        background: rgba(7, 17, 27, .4);
       }
     }
 
