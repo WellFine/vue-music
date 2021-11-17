@@ -10,8 +10,8 @@
     </div>
     <com-scroll
       class="list" :style="scrollStyle"
-      v-loading="loading"
       :probe-type="3" @scroll="onScroll"
+      v-loading="loading" v-no-result:[noResultInfo]="noResult"
     >
       <div class="list-wrapper">
         <song-list
@@ -40,7 +40,11 @@
       },
       title: String, // 列表标题
       pic: String, // 列表头图,
-      loading: Boolean // 是否加载数据
+      loading: Boolean, // 是否加载数据
+      noResultInfo: {
+        type: String,
+        default: '抱歉，没有找到可播放的歌曲'
+      }
     },
     components: {
       ComScroll: Scroll,
@@ -103,6 +107,9 @@
         return {
           backdropFilter: `blur(${blur}px)`
         }
+      },
+      noResult () {
+        return !this.songs.length && !this.loading
       }
     },
     mounted () {
