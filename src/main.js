@@ -9,6 +9,8 @@ import '@/assets/scss/index.scss'
 
 // v-loading 指令
 import loadingDirective from '@/components/base/loading/directive'
+// v-no-result 指令
+import noResultDirective from '@/components/base/no-result/directive'
 
 createApp(App).use(store).use(router).use(lazyPlugin, {
   /**
@@ -19,4 +21,5 @@ createApp(App).use(store).use(router).use(lazyPlugin, {
 })
 // app.directive 全局注册指令，但要注意，在这个 app 下注册的指令，只能这个 app 下的组件可以使用
 .directive('loading', loadingDirective)
+.directive('no-result', noResultDirective)
 .mount('#app')
