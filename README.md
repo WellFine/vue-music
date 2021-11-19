@@ -182,6 +182,12 @@ app.use(lazyPlygin, {
 
 如 `./src/components/base/index-list/useFixed.js` 中监听数据变化后重新计算 DOM 高度
 
+如 `./src/components/player/progress-bar.vue` 在 mounted 生命周期函数中获取组件的 clientWidth 时，因为 mounted 生命周期函数不保证子组件也挂载完成，所以需要使用 nextTick 等待下一个 DOM 更新周期之后，以保证子组件也挂载完成计算出正确的 clientWidth
+
+### mounted 生命周期函数不保证所有的子组件也都挂载完成
+
+> 官方文档：注意 mounted 不会保证所有的子组件也都被挂载完成。如果你希望等待整个视图都渲染完毕，可以在 mounted 内部使用 vm.$nextTick
+
 ### 依赖收集与临时变量
 
 使用 computed 计算属性时，如果响应式变量使用次数超过 1 次，应该使用一个临时变量缓存起来，这是 vue 常用的性能优化技巧
