@@ -13,9 +13,20 @@
           <h2 class="singer">{{ currentSong.singer }}</h2>
         </div>
         <div class="bottom">
+          <div class="progress-wrapper">
+            <span class="time time-left">{{ formatTime(currentTime) }}</span>
+            <div class="progress-bar-wrapper">
+              <progress-bar
+                :progress="progress"
+                @progress-changing="onProgressChanging"
+                @progress-changed="onProgressChanged"
+              />
+            </div>
+            <span class="time time-right">{{ formatTime(currentSong.duration) }}</span>
+          </div>
           <div class="operators">
             <div class="icon i-left">
-              <i class="icon-sequence"></i>
+              <i :class="modeIcon" @click="changeMode"></i>
             </div>
             <div class="icon i-left" :class="disableCls">
               <i class="icon-prev" @click="prev"></i>
@@ -27,7 +38,7 @@
               <i class="icon-next" @click="next"></i>
             </div>
             <div class="icon i-right">
-              <i class="icon-not-favorite"></i>
+              <i :class="getFavoriteIcon(currentSong)" @click="toggleFavorite(currentSong)"></i>
             </div>
           </div>
         </div>
@@ -37,6 +48,7 @@
       当音乐播放完毕，设备待机或睡眠时，会触发 audio 标签的 pause 事件，此时需要更改播放状态以避免数据状态不一致
       音乐是流式加载的，每加载一段内容就会缓冲下来，只有当有缓冲内容时才会播放音乐，缓冲内容更新会触发 canplay 事件
       歌曲播放有问题时会触发 error 事件
+      timeupdate 歌曲播放时长变化时触发
     -->
     <audio
       ref="audioRef"
@@ -44,140 +56,100 @@
       @pause="pause"
       @canplay="ready"
       @error="error"
+      @timeupdate="updateTime"
+      @ended="ended"
     ></audio>
   </div>
 </template>
 
 <script>
-  import { computed, watch, ref } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import { useStore } from 'vuex'
+
+  import { formatTime } from '@/assets/js/util'
+
+  import useBasePlay from './useBasePlay'
+  import useMode from './useMode'
+  import useFavorite from './useFavorite'
+  import useProgress from './useProgress'
+
+  import ProgressBar from './progress-bar'
 
   export default {
     name: 'player',
+    components: {
+      ProgressBar
+    },
     setup () {
       const audioRef = ref(null)
-      // songReady 是歌曲缓冲标识，为 false 时将无法上下切换歌曲，也无法暂停或播放歌曲
-      const songReady = ref(false)
 
-      const store = useStore()
-
-      const fullScreen = computed(() => store.state.fullScreen)
-      const currentSong = computed(() => store.getters.currentSong)
-
-      const playing = computed(() => store.state.playing)
-      const playIcon = computed(() => playing.value ? 'icon-pause' : 'icon-play')
-
-      const currentIndex = computed(() => store.state.currentIndex)
-      const playlist = computed(() => store.state.playlist)
-
-      const disableCls = computed(() => songReady.value ? '' : 'disable')
-
-      watch(currentSong, song => {
-        if (!song.id || !song.url) return
-
-        // 切换歌曲时将重置缓冲标志
-        songReady.value = false
-        const audioEl = audioRef.value
-        audioEl.src = song.url // 设置音频链接
-        audioEl.play() // 播放
-      })
-
-      watch(playing, bool => {
-        // 歌曲还没有缓冲内容时暂时不播放
-        if (!songReady.value) return
-
-        bool ? audioRef.value.play() : audioRef.value.pause()
-      })
-
-      const goBack = () => {
-        store.commit('setFullScreen', false)
-      }
-
-      const togglePlay = () => {
-        // 如果歌曲还没有加载好，那么直接返回
-        if (!songReady.value) return
-        store.commit('setPlayingState', !playing.value)
-      }
-
-      const play = () => {
-        store.commit('setPlayingState', true)
-      }
-
-      const pause = () => {
-        // 当 audio 触发了 pause 事件时，需要进行数据状态的统一
-        store.commit('setPlayingState', false)
-      }
-
-      const ready = () => {
-        // 歌曲已经有缓冲内容就不需要重复设置了
-        if (songReady.value) return
-        songReady.value = true
-      }
-
-      const error = () => {
-        // 歌曲出错时如果 songReady 为 false，那么会卡在播放页面，无法切换歌曲和暂停或播放
-        songReady.value = true
-      }
-
-      const prev = () => {
-        const list = playlist.value
-
-        // 播放歌曲还没有缓冲内容或播放歌曲列表为空时直接返回
-        if (!songReady.value || !list.length) return
-
-        // 如果列表只有一首歌，那么切歌就等于重新播放
-        if (list.length === 1) {
-          replay()
-          return
-        }
-
-        let index = currentIndex.value - 1
-
-        if (index < 0) index = list.length - 1
-
-        store.commit('setCurrentIndex', index)
-      }
-
-      const next = () => {
-        const list = playlist.value
-
-        // 播放歌曲还没有缓冲内容或播放歌曲列表为空时直接返回
-        if (!songReady.value || !list.length) return
-
-        // 如果列表只有一首歌，那么切歌就等于重新播放
-        if (list.length === 1) {
-          replay()
-          return
-        }
-
-        let index = currentIndex.value + 1
-
-        if (index >= list.length) index = 0
-
-        store.commit('setCurrentIndex', index)
-      }
-
-      // 重播歌曲
-      function replay () {
-        const audioEl = audioRef.value
-        audioEl.currentTime = 0
-        audioEl.play()
-      }
-
-      return {
+      const {
         fullScreen,
-        currentSong,
+        songReady,
         playIcon,
         disableCls,
-        audioRef,
         goBack,
         togglePlay,
         play,
         pause,
         ready,
         error,
+        ended,
         prev,
         next
+      } = useBasePlay(audioRef)
+
+      const { modeIcon, changeMode } = useMode()
+
+      const { getFavoriteIcon, toggleFavorite } = useFavorite()
+
+      const { currentTime, progress, updateTime, onProgressChanging, onProgressChanged } = useProgress(audioRef)
+
+      const store = useStore()
+      const currentSong = computed(() => store.getters.currentSong)
+
+      watch(currentSong, song => {
+        if (!song.id || !song.url) return
+
+        // 切换歌曲时将当前播放时长置为 0，且重置缓冲标志
+        currentTime.value = 0 // 其实 audio 提供的 timeupdate 事件中，刚开始播放时长就是 0，而 updateTime 处理事件中已经设置了 currentTime
+        songReady.value = false
+
+        const audioEl = audioRef.value
+        audioEl.src = song.url // 设置音频链接
+        audioEl.play() // 播放
+      })
+
+      return {
+        audioRef,
+        currentSong,
+        // util 工具函数
+        formatTime,
+        // base play 基础播放功能
+        fullScreen,
+        playIcon,
+        disableCls,
+        goBack,
+        togglePlay,
+        play,
+        pause,
+        ready,
+        error,
+        ended,
+        prev,
+        next,
+        // mode 播放模式
+        modeIcon,
+        changeMode,
+        // favorite 收藏歌曲
+        getFavoriteIcon,
+        toggleFavorite,
+        // progress 进度条
+        currentTime,
+        progress,
+        updateTime,
+        onProgressChanging,
+        onProgressChanged
       }
     }
   }
@@ -251,6 +223,30 @@
         position: absolute;
         bottom: 50px;
         width: 100%;
+
+        .progress-wrapper {
+          display: flex;
+          align-items: center;
+          width: 80%;
+          margin: 0px auto;
+          padding: 10px 0;
+          .time {
+            color: $color-text;
+            font-size: $font-size-small;
+            flex: 0 0 40px;
+            line-height: 30px;
+            width: 40px;
+            &.time-left {
+              text-align: left;
+            }
+            &.time-right {
+              text-align: right;
+            }
+          }
+          .progress-bar-wrapper {
+            flex: 1;
+          }
+        }
 
         .operators {
           display: flex;
