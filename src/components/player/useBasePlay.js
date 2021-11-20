@@ -2,7 +2,7 @@ import { computed, watch, ref } from 'vue'
 import { useStore } from 'vuex'
 import { PLAY_MODE } from '@/assets/js/constant'
 
-export default function useBasePlay (audioRef) {
+export default function useBasePlay (audioRef, lyricFnRef) {
   // songReady 是歌曲缓冲标识，为 false 时将无法上下切换歌曲，也无法暂停或播放歌曲
   const songReady = ref(false)
 
@@ -22,7 +22,13 @@ export default function useBasePlay (audioRef) {
     // 歌曲还没有缓冲内容时暂时不播放
     if (!songReady.value) return
 
-    bool ? audioRef.value.play() : audioRef.value.pause()
+    if (bool) {
+      audioRef.value.play()
+      lyricFnRef.value.playLyric()
+    } else {
+      audioRef.value.pause()
+      lyricFnRef.value.stopLyric()
+    }
   })
 
   const goBack = () => {
@@ -48,6 +54,8 @@ export default function useBasePlay (audioRef) {
     // 歌曲已经有缓冲内容就不需要重复设置了
     if (songReady.value) return
     songReady.value = true
+    // 歌曲缓冲后播放歌词
+    lyricFnRef.value.playLyric()
   }
 
   const error = () => {
