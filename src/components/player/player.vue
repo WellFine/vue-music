@@ -12,6 +12,34 @@
           <h1 class="title">{{ currentSong.name }}</h1>
           <h2 class="singer">{{ currentSong.singer }}</h2>
         </div>
+        <div class="middle">
+          <div class="middle-l">
+            <div class="cd-wrapper">
+              <div class="cd" ref="cdRef">
+                <img
+                  :src="currentSong.pic" class="image" :class="rotateClass"
+                  ref="cdImageRef"
+                />
+              </div>
+            </div>
+            <div class="playing-lyric-wrapper">
+              <div class="playing-lyric">{{ playingLyric }}</div>
+            </div>
+          </div>
+          <com-scroll class="middle-r" ref="lyricScrollRef">
+            <div class="lyric-wrapper">
+              <div v-if="currentLyric" ref="lyricListRef">
+                <p
+                  class="text" :class="{ 'current': currentLineNum === index }"
+                  v-for="(line, index) in currentLyric.lines" :key="line.num"
+                >{{ line.txt }}</p>
+              </div>
+              <div class="pure-music" v-show="pureMusicLyric">
+                <p>{{ pureMusicLyric }}</p>
+              </div>
+            </div>
+          </com-scroll>
+        </div>
         <div class="bottom">
           <div class="progress-wrapper">
             <span class="time time-left">{{ formatTime(currentTime) }}</span>
@@ -45,7 +73,7 @@
       </template>
     </div>
     <!--
-      当音乐播放完毕，设备待机或睡眠时，会触发 audio 标签的 pause 事件，此时需要更改播放状态以避免数据状态不一致
+      当音乐暂停播放、播放完毕、设备待机或睡眠时，会触发 audio 标签的 pause 事件，此时需要更改播放状态以避免数据状态不一致
       音乐是流式加载的，每加载一段内容就会缓冲下来，只有当有缓冲内容时才会播放音乐，缓冲内容更新会触发 canplay 事件
       歌曲播放有问题时会触发 error 事件
       timeupdate 歌曲播放时长变化时触发
@@ -63,7 +91,7 @@
 </template>
 
 <script>
-  import { computed, ref, watch } from 'vue'
+  import { ref, computed, watch } from 'vue'
   import { useStore } from 'vuex'
 
   import { formatTime } from '@/assets/js/util'
@@ -72,16 +100,21 @@
   import useMode from './useMode'
   import useFavorite from './useFavorite'
   import useProgress from './useProgress'
+  import useCD from './useCD'
+  import useLyric from './useLyric'
 
   import ProgressBar from './progress-bar'
+  import Scroll from '@/components/base/scroll/scroll'
 
   export default {
     name: 'player',
     components: {
-      ProgressBar
+      ProgressBar,
+      ComScroll: Scroll
     },
     setup () {
       const audioRef = ref(null)
+      const lyricFn = ref(null)
 
       const {
         fullScreen,
@@ -97,13 +130,20 @@
         ended,
         prev,
         next
-      } = useBasePlay(audioRef)
+      } = useBasePlay(audioRef, lyricFn)
 
       const { modeIcon, changeMode } = useMode()
 
       const { getFavoriteIcon, toggleFavorite } = useFavorite()
 
-      const { currentTime, progress, updateTime, onProgressChanging, onProgressChanged } = useProgress(audioRef)
+      const { currentTime, progress, updateTime, onProgressChanging, onProgressChanged } = useProgress(audioRef, lyricFn)
+
+      const { rotateClass, cdRef, cdImageRef } = useCD()
+
+      const { lyricScrollRef, lyricListRef, currentLyric, currentLineNum, pureMusicLyric, playingLyric, playLyric, stopLyric } = useLyric(songReady, currentTime)
+
+      // 将播放歌词函数存在临时函数中，用于 useBasePlay() 中歌曲 ready 时播放歌词
+      lyricFn.value = { playLyric, stopLyric }
 
       const store = useStore()
       const currentSong = computed(() => store.getters.currentSong)
@@ -149,7 +189,18 @@
         progress,
         updateTime,
         onProgressChanging,
-        onProgressChanged
+        onProgressChanged,
+        // cd 唱片
+        rotateClass,
+        cdRef,
+        cdImageRef,
+        // lyric 歌词
+        lyricScrollRef,
+        lyricListRef,
+        currentLyric,
+        currentLineNum,
+        pureMusicLyric,
+        playingLyric
       }
     }
   }
@@ -216,6 +267,95 @@
           text-align: center;
           font-size: $font-size-medium;
           color: $color-text;
+        }
+      }
+
+      .middle {
+        position: fixed;
+        width: 100%;
+        top: 80px;
+        bottom: 170px;
+        white-space: nowrap;
+        font-size: 0;
+
+        .middle-l {
+          display: inline-block;
+          vertical-align: top;
+          position: relative;
+          width: 100%;
+          height: 0;
+          padding-top: 80%;
+
+          .cd-wrapper {
+            position: absolute;
+            left: 10%;
+            top: 0;
+            width: 80%;
+            height: 100%;
+
+            .cd {
+              width: 100%;
+              height: 100%;
+              border-radius: 50%;
+
+              img {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                border: 10px solid rgba(255, 255, 255, .1);
+                box-sizing: border-box;
+              }
+
+              .playing {
+                animation: rotate 20s linear infinite;
+                animation-fill-mode: forwards;
+              }
+            }
+          }
+
+          .playing-lyric-wrapper {
+            width: 80%;
+            margin: 30px auto 0 auto;
+            overflow: hidden;
+            text-align: center;
+            .playing-lyric {
+              height: 20px;
+              line-height: 20px;
+              font-size: $font-size-medium;
+              color: $color-text-l;
+            }
+          }
+        }
+
+        .middle-r {
+          display: inline-block;
+          vertical-align: top;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+          .lyric-wrapper {
+            width: 80%;
+            margin: 0 auto;
+            overflow: hidden;
+            text-align: center;
+            .text {
+              line-height: 32px;
+              color: $color-text-l;
+              font-size: $font-size-medium;
+              &.current {
+                color: $color-theme;
+              }
+            }
+            .pure-music {
+              padding-top: 50%;
+              line-height: 32px;
+              color: $color-text-l;
+              font-size: $font-size-medium;
+            }
+          }
         }
       }
 
