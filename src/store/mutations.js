@@ -19,6 +19,13 @@ const mutations = {
   },
   setFavoriteList (state, list) {
     state.favoriteList = list
+  },
+  addSongLyric (state, { song, lyric }) {
+    // sequenceList 和 playlist 中的对象是相同的引用，所以改 sequenceList 中的数据 playlist 中的也会变化
+    state.sequenceList.map(item => {
+      if (item.mid === song.mid) item.lyric = lyric
+      return item
+    })
   }
 }
 
