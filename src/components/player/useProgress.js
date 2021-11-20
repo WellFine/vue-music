@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 import { useStore } from 'vuex'
 
-export default function useProgress (audioRef) {
+export default function useProgress (audioRef, lyricFnRef) {
   let isTouchAndChangeProgress = false
   const currentTime = ref(0)
 
@@ -21,6 +21,11 @@ export default function useProgress (audioRef) {
   const onProgressChanging = progress => {
     isTouchAndChangeProgress = true
     currentTime.value = currentSong.value.duration * progress
+    const lyricFn = lyricFnRef.value
+    // 拖动进度条过程中 currentTime 变化,调用 playLyric 会将歌词同步到当前歌曲 currentTime 处
+    lyricFn.playLyric()
+    // 同步过后暂停歌词播放
+    lyricFn.stopLyric()
   }
 
   const onProgressChanged = progress => {
@@ -29,6 +34,8 @@ export default function useProgress (audioRef) {
     audioEl.currentTime = currentTime.value
     audioEl.play()
     isTouchAndChangeProgress = false
+    // 拖动进度条松手后同步歌词并播放
+    lyricFnRef.value.playLyric()
   }
 
   return {
