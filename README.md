@@ -94,6 +94,19 @@ BetterScroll 也是基于 touch 类事件实现的滚动
 
 
 
+## audio 标签
+
+`audio` 标签定义声音，比如音乐或其他音频流，其事件如下
+
+- play：音频播放事件
+- pause：音频停止事件，当音乐暂停播放、播放完毕、设备待机或睡眠时触发
+- canplay：音频是流式加载的，每加载一段内容就会缓冲下来，只有当有缓冲内容时才会播放音乐，缓冲内容更新会触发 canplay 事件
+- error：音频播放错误事件
+- timeupdate：音频播放时间更新事件
+- ended：音频播放完成结束事件
+
+
+
 ## 手机调试
 
 开发过程中想要用手机调试，手机和电脑在同一个局域网内时，可以用手机访问项目启动时的 ip 地址，如 `http://192.168.1.3:8080/`
@@ -161,10 +174,12 @@ app.use(lazyPlygin, {
 ```
 
 
-
 ### [good-storage](https://github.com/ustbhuangyi/storage)
 
 库内部进行了序列化操作，使用这个库可以存储对象格式，该库使用相同 api 支持 sessionStorage 和 localStorage 的存储库
+
+
+### lyric-parser 歌词解析库
 
 
 
@@ -174,19 +189,26 @@ app.use(lazyPlygin, {
 
 `watch` 可以直接监听一个 ref，也可以监听一个 getter 函数的返回值。如果监听不是 ref 响应式的数据，应该使用 getter 函数返回
 
+
 ### nextTick 回调延迟
 
 > 官方文档：将回调推迟到下一个 DOM 更新周期之后执行。在更改了一些数据以等待 DOM 更新后立即使用它。
 
-一般在数据变化后，如果想做的操作需要 DOM 更新后才能实现，那么可以使用 `nextTick()` 等待 DOM 更新完成，回调使用 `async await` 更加方便
+一般在数据变化后，如果想做的操作需要 DOM 更新渲染后才能实现，那么可以使用 `nextTick()` 等待 DOM 更新渲染完成，回调使用 `async await` 更加方便
 
 如 `./src/components/base/index-list/useFixed.js` 中监听数据变化后重新计算 DOM 高度
 
-如 `./src/components/player/progress-bar.vue` 在 mounted 生命周期函数中获取组件的 clientWidth 时，因为 mounted 生命周期函数不保证子组件也挂载完成，所以需要使用 nextTick 等待下一个 DOM 更新周期之后，以保证子组件也挂载完成计算出正确的 clientWidth
+如 `./src/components/player/progress-bar.vue` 在 mounted 生命周期函数中获取组件的 clientWidth 时，因为 mounted 生命周期函数开始执行时，挂载上去了但还没渲染完成，且 mounted 不保证子组件也挂载完成，所以需要使用 nextTick 等待下一个 DOM 更新周期之后，以保证子组件也挂载完成计算出正确的 clientWidth
 
-### mounted 生命周期函数不保证所有的子组件也都挂载完成
+
+### mounted 生命周期函数
+
+mounted 生命周期函数执行时组件已经挂载了，但此时还没有渲染完成，因为渲染是异步的，要想操作渲染完成后逻辑，需要使用 `nextTick`。如 `./src/components/player/progress-bar.vue` 中获取 clientWidth 的问题
+
+第二个要注意的问题是：mounted 不保证所有的子组件也都挂载完成
 
 > 官方文档：注意 mounted 不会保证所有的子组件也都被挂载完成。如果你希望等待整个视图都渲染完毕，可以在 mounted 内部使用 vm.$nextTick
+
 
 ### 依赖收集与临时变量
 
@@ -194,6 +216,10 @@ app.use(lazyPlygin, {
 
 原因：每次取 `this.响应式变量` 时，实际上会执行响应式变量的[依赖收集](https://zhuanlan.zhihu.com/p/45081605)，依赖收集过程中会执行变量的 `getter` 等进行一系列 JS 操作，如果多次使用 this.响应式变量，就会执行多次依赖收集，造成没必要的资源浪费
 
+
+### 是否需要将变量定义到 data 上
+
+在 data 中返回的变量 vue 会将其变成响应式，如果使用某些变量时不需要利用响应式的特点，那么这些变量就没必要定义在 data 中返回，否则是一种不必要的性能浪费
 
 
 ### 自定义指令
@@ -227,7 +253,6 @@ app.directive('directiveName', directive)
 而 v-loading 指令个人认为显示在屏幕中间会好看一点，所以为 v-loading 组件添加了 fixed 定位
 
 **注意：需要处理一种情况，就是多个指令作用在同一个 DOM 元素上时，挂载在 el 上的 instance 会冲突，需要添加多一层组件 name 属性来防止后面的指令 instance 覆盖了前面指令的 instance，造成移除 el.instance 时找不到元素的错误**
-
 
 
 ### transition
@@ -355,3 +380,20 @@ export default {
 Options API 的优点是结构清晰，是一种描述型的结构，适用于逻辑较少的组件，这样看起来非常清晰。就像 SFC 中使用 template 而不使用 render function 一样，给人一种直观的感觉
 
 Composition API 作为 vue3 一种新推出的开发模式，适用于逻辑复杂或逻辑可重用可抽离的场景。vue3.2 推出了 `<script setup>` 听说很香，总之具体场景具体分析，适合的才是最好的
+
+
+
+
+# git commit 提交规范
+
+- feat：新增功能
+- fix：bug 修复
+- docs：文档更新
+- style：不影响程序逻辑的代码修改 (修改空白字符，格式缩进，补全缺失的分号等，没有改变代码逻辑)
+- refactor：重构代码 (既没有新增功能，也没有修复 bug)
+- perf：性能, 体验优化
+- test：新增测试用例或是更新现有测试
+- build：主要目的是修改项目构建系统 (例如 glup，webpack，rollup 的配置等) 的提交
+- ci：主要目的是修改项目继续集成流程 (例如 Travis，Jenkins，GitLab CI，Circle等) 的提交
+- chore：不属于以上类型的其他类，比如构建流程, 依赖管理
+- revert：回滚某个更早之前的提交
