@@ -40,7 +40,10 @@
       this.touch = {}
     },
     mounted () {
-      // mounted 在该组件挂载完成时执行，但不保证其子组件也挂载完成，而要想获取该组件准确的 clientWidth 就必须等待子组件挂载完成，所以这里用 nextTick 等待下一次 DOM 更新周期之后再获取 clientWidth
+      /**
+       * mounted 执行时组件挂载了但还没有渲染完成，因为渲染是异步的
+       * 所以要想获取准确的 clientWidth 需要等待组件渲染完成，所以这里使用 nextTick 等待下一次 DOM 更新
+       */
       this.$nextTick(() => {
         // 进度条总长度，和 touch 一样不必在 data 中返回
         this.barWidth = this.$el.clientWidth - progressBtnWidth
