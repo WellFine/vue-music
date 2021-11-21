@@ -8,7 +8,7 @@ export default function useProgress (audioRef, lyricFnRef) {
   const store = useStore()
   const currentSong = computed(() => store.getters.currentSong)
 
-  const progress = computed(() => currentTime.value / currentSong.value.duration)
+  const progress = computed(() => currentTime.value / (currentSong.value ? currentSong.value.duration : 0))
 
   // updateTime 是 audio 标签的 timeupdate 事件处理函数
   const updateTime = e => {
