@@ -120,6 +120,7 @@ export default function useBasePlay (audioRef, lyricFnRef) {
   return {
     fullScreen,
     songReady,
+    playlist,
     playIcon,
     disableCls,
     goBack,
