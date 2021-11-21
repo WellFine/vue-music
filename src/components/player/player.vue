@@ -1,5 +1,5 @@
 <template>
-  <div class="player">
+  <div class="player" v-show="playlist.length">
     <div class="normal-player" v-show="fullScreen">
       <template v-if="currentSong">
         <div class="background">
@@ -12,8 +12,13 @@
           <h1 class="title">{{ currentSong.name }}</h1>
           <h2 class="singer">{{ currentSong.singer }}</h2>
         </div>
-        <div class="middle">
-          <div class="middle-l">
+        <div
+          class="middle"
+          @touchstart.prevent="onMiddleTouchStart"
+          @touchmove.prevent="onMiddleTouchMove"
+          @touchend.prevent="onMiddleTouchEnd"
+        >
+          <div class="middle-l" :style="middleLeftStyle">
             <div class="cd-wrapper">
               <div class="cd" ref="cdRef">
                 <img
@@ -26,7 +31,10 @@
               <div class="playing-lyric">{{ playingLyric }}</div>
             </div>
           </div>
-          <com-scroll class="middle-r" ref="lyricScrollRef">
+          <com-scroll
+            class="middle-r" :style="middleRightStyle"
+            ref="lyricScrollRef"
+          >
             <div class="lyric-wrapper">
               <div v-if="currentLyric" ref="lyricListRef">
                 <p
@@ -41,6 +49,10 @@
           </com-scroll>
         </div>
         <div class="bottom">
+          <div class="dot-wrapper">
+            <span class="dot" :class="{ 'active': currentShow === 'cd' }"></span>
+            <span class="dot" :class="{ 'active': currentShow === 'lyric' }"></span>
+          </div>
           <div class="progress-wrapper">
             <span class="time time-left">{{ formatTime(currentTime) }}</span>
             <div class="progress-bar-wrapper">
@@ -72,6 +84,7 @@
         </div>
       </template>
     </div>
+    <mini-player :progress="progress" :togglePlay="togglePlay"></mini-player>
     <!--
       当音乐暂停播放、播放完毕、设备待机或睡眠时，会触发 audio 标签的 pause 事件，此时需要更改播放状态以避免数据状态不一致
       音乐是流式加载的，每加载一段内容就会缓冲下来，只有当有缓冲内容时才会播放音乐，缓冲内容更新会触发 canplay 事件
@@ -102,15 +115,18 @@
   import useProgress from './useProgress'
   import useCD from './useCD'
   import useLyric from './useLyric'
+  import useMiddleInteractive from './useMiddleInteractive'
 
   import ProgressBar from './progress-bar'
+  import MiniPlayer from './mini-player'
   import Scroll from '@/components/base/scroll/scroll'
 
   export default {
     name: 'player',
     components: {
       ProgressBar,
-      ComScroll: Scroll
+      ComScroll: Scroll,
+      MiniPlayer
     },
     setup () {
       const audioRef = ref(null)
@@ -119,6 +135,7 @@
       const {
         fullScreen,
         songReady,
+        playlist,
         playIcon,
         disableCls,
         goBack,
@@ -141,6 +158,8 @@
       const { rotateClass, cdRef, cdImageRef } = useCD()
 
       const { lyricScrollRef, lyricListRef, currentLyric, currentLineNum, pureMusicLyric, playingLyric, playLyric, stopLyric } = useLyric(songReady, currentTime)
+
+      const { currentShow, middleLeftStyle, middleRightStyle, onMiddleTouchStart, onMiddleTouchMove, onMiddleTouchEnd } = useMiddleInteractive()
 
       // 将播放歌词函数存在临时函数中，用于 useBasePlay() 中歌曲 ready 时播放歌词
       lyricFn.value = { playLyric, stopLyric }
@@ -167,6 +186,7 @@
         formatTime,
         // base play 基础播放功能
         fullScreen,
+        playlist,
         playIcon,
         disableCls,
         goBack,
@@ -200,7 +220,14 @@
         currentLyric,
         currentLineNum,
         pureMusicLyric,
-        playingLyric
+        playingLyric,
+        // cd 与歌词交互
+        currentShow,
+        middleLeftStyle,
+        middleRightStyle,
+        onMiddleTouchStart,
+        onMiddleTouchMove,
+        onMiddleTouchEnd
       }
     }
   }
@@ -363,6 +390,25 @@
         position: absolute;
         bottom: 50px;
         width: 100%;
+
+        .dot-wrapper {
+          text-align: center;
+          font-size: 0;
+          .dot {
+            display: inline-block;
+            vertical-align: middle;
+            margin: 0 4px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: $color-text-l;
+            &.active {
+              width: 20px;
+              border-radius: 5px;
+              background: $color-text-ll;
+            }
+          }
+        }
 
         .progress-wrapper {
           display: flex;
