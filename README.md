@@ -182,6 +182,9 @@ app.use(lazyPlygin, {
 ### lyric-parser 歌词解析库
 
 
+### create-keyframe-animation 使用 js 定义 css3 animation
+
+
 
 ## vue 的使用及 API
 
@@ -263,6 +266,28 @@ vue3 的 transition 类名进行了升级，`v-enter` 和 `v-leave` 变为了 `v
 
 * name：定义过渡类名前缀
 * appear：过渡立即生效
+
+#### [transition js 钩子函数](https://v3.cn.vuejs.org/guide/transitions-enterleave.html#javascript-%E9%92%A9%E5%AD%90)
+
+```html
+<transition
+  @before-enter="beforeEnter"
+  @enter="enter"
+  @after-enter="afterEnter"
+  @enter-cancelled="enterCancelled"
+  @before-leave="beforeLeave"
+  @leave="leave"
+  @after-leave="afterLeave"
+  @leave-cancelled="leaveCancelled"
+  :css="false"
+>
+  <!-- leaveCancelled 只用于 v-show 中 -->
+</transition>
+```
+
+这些钩子函数可以结合 CSS transitions/animations 使用，也可以单独使用
+
+当只用 JavaScript 过渡的时候，在 enter 和 leave 钩中必须使用 done 进行回调，以通知 vue 动画结束，进入下一个钩子函数 afterEnter 和 afterLeave
 
 #### transition 与其他组件（如 router-view）结合时的嵌套顺序
 
