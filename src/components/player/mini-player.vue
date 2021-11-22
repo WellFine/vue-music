@@ -8,9 +8,13 @@
             <img :class="rotateClass" :src="currentSong.pic" ref="cdImageRef" />
           </div>
         </div>
-        <div class="slider-wrapper">
-          <h2 class="name">{{ currentSong.name }}</h2>
-          <p class="desc">{{ currentSong.singer }}</p>
+        <div class="slider-wrapper" ref="sliderWrapperRef">
+          <div class="slider-group">
+            <div class="slider-page" v-for="song in playlist" :key="song.id">
+              <h2 class="name">{{ song.name }}</h2>
+              <p class="desc">{{ song.singer }}</p>
+            </div>
+          </div>
         </div>
       </template>
       <div class="control">
@@ -26,6 +30,7 @@
   import { computed } from 'vue'
   import { useStore } from 'vuex'
   import useCD from './useCD'
+  import useMiniSlider from './useMiniSlider'
   import ProgressCircle from './progress-circle'
 
   export default {
@@ -42,6 +47,7 @@
       const store = useStore()
       const fullScreen = computed(() => store.state.fullScreen)
       const currentSong = computed(() => store.getters.currentSong)
+      const playlist = computed(() => store.state.playlist)
       const playing = computed(() => store.state.playing)
       const miniPlayIcon = computed(() => playing.value ? 'icon-pause-mini' : 'icon-play-mini')
 
@@ -51,6 +57,8 @@
 
       const { rotateClass, cdRef, cdImageRef } = useCD()
 
+      const { sliderWrapperRef } = useMiniSlider()
+
       // 这里不能用 useBasePlay 来获取 togglePlay，因为 togglePlay 中依赖了 songReady 这个值
       // 如果在这里重新调用 useBasePlay，那么 songReady 将永远为 false
       // songReady 只能从外层的 player.vue 中调用的 useBasePlay() 取值并通过传参的方式传入本组件
@@ -59,12 +67,15 @@
       return {
         fullScreen,
         currentSong,
+        playlist,
         miniPlayIcon,
         showFullScreen,
         // cd
         rotateClass,
         cdRef,
-        cdImageRef
+        cdImageRef,
+        // mini-slider
+        sliderWrapperRef
       }
     }
   }
@@ -108,18 +119,32 @@
 
     .slider-wrapper {
       flex: 1;
-
-      .name {
-        margin-bottom: 2px;
-        @include no-wrap();
-        font-size: $font-size-medium;
-        color: $color-text;
-      }
-
-      .desc {
-        @include no-wrap();
-        font-size: $font-size-small;
-        color: $color-text-d;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      line-height: 20px;
+      overflow: hidden;
+      .slider-group {
+        position: relative;
+        overflow: hidden;
+        white-space: nowrap;
+        .slider-page {
+          display: inline-block;
+          width: 100%;
+          transform: translate3d(0, 0, 0);
+          backface-visibility: hidden;
+          .name {
+            margin-bottom: 2px;
+            @include no-wrap();
+            font-size: $font-size-medium;
+            color: $color-text;
+          }
+          .desc {
+            @include no-wrap();
+            font-size: $font-size-small;
+            color: $color-text-d;
+          }
+        }
       }
     }
 
