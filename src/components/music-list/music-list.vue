@@ -30,10 +30,10 @@
 </template>
 
 <script>
-  import Scroll from '@/components/base/scroll/scroll'
+  import Scroll from '@/components/wrap-scroll'
   import SongList from '@/components/base/song-list/song-list'
 
-  import { mapActions } from 'vuex'
+  import { mapActions, mapState } from 'vuex'
 
   // 滚动歌曲列表时，顶部歌手名字和返回图标 fixed 的高度
   const TOP_FIXED_HEIGHT = 40
@@ -70,6 +70,7 @@
       }
     },
     computed: {
+      ...mapState(['playlist']),
       // 动态设置背景图高度，滚动歌曲列表会随之隐藏或放大背景图
       bgImageStyle () {
         const scrollY = this.scrollY
@@ -102,8 +103,10 @@
       },
       // 根据背景图片高度动态设置歌曲滚都列表的定位 top 和 bottom 值
       scrollStyle () {
+        const bottom = this.playlist.length ? '60px' : '0px'
         return {
-          top: `${this.imageHeight}px`
+          top: `${this.imageHeight}px`,
+          bottom
         }
       },
       // 上拉歌曲列表时背景图蒙层模糊处理

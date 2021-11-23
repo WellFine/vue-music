@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import Scroll from '@/components/base/scroll/scroll'
+import Scroll from '@/components/wrap-scroll'
 import Slider from '@/components/base/slider/slider'
 
 import { getRecommend } from '@/service/recommend'
