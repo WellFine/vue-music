@@ -22,20 +22,28 @@
           <i class="icon-mini" :class="miniPlayIcon" @click.stop="togglePlay"></i>
         </progress-circle>
       </div>
+      <div class="control" @click.stop="showPlaylist">
+        <i class="icon-playlist"></i>
+      </div>
+      <playlist ref="playlistRef"></playlist>
     </div>
   </transition>
 </template>
 
 <script>
-  import { computed } from 'vue'
+  import { ref, computed } from 'vue'
   import { useStore } from 'vuex'
   import useCD from './useCD'
   import useMiniSlider from './useMiniSlider'
   import ProgressCircle from './progress-circle'
+  import Playlist from './playlist.vue'
 
   export default {
     name: 'mini-player',
-    components: { ProgressCircle },
+    components: {
+      ProgressCircle,
+      Playlist
+    },
     props: {
       progress: {
         type: Number,
@@ -50,6 +58,11 @@
       const playlist = computed(() => store.state.playlist)
       const playing = computed(() => store.state.playing)
       const miniPlayIcon = computed(() => playing.value ? 'icon-pause-mini' : 'icon-play-mini')
+
+      const playlistRef = ref(null)
+      const showPlaylist = () => {
+        playlistRef.value.show()
+      }
 
       const showFullScreen = () => {
         store.commit('setFullScreen', true)
@@ -69,6 +82,8 @@
         currentSong,
         playlist,
         miniPlayIcon,
+        playlistRef,
+        showPlaylist,
         showFullScreen,
         // cd
         rotateClass,
