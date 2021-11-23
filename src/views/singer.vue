@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import IndexList from '@/components/base/index-list/index-list'
+import IndexList from '@/components/index-list/index-list'
 import { getSingerList } from '@/service/singer'
 import storage from 'good-storage'
 import { SINGER_KEY } from '@/assets/js/constant'
