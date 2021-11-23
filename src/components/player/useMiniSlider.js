@@ -64,6 +64,15 @@ export default function useMiniSlider () {
         sliderVal.goToPage(newIndex, 0, 0)
       }
     })
+
+    // 在 playlist.vue 中删除歌曲改变 state.playlist 后，需要重新计算 mini-player.vue 的横向滚动 DOM，以防止删除歌曲还存在
+    watch(playlist, async (newList) => {
+      // newList.length 的判断是因为如果播放列表为空，那么 slider 的滑动 DOM 为空，此时调用 refresh 会报错
+      if (sliderVal && isSliderShow.value && newList.length) {
+        await nextTick()
+        sliderVal.refresh()
+      }
+    })
   })
 
   onUnmounted(() => {
