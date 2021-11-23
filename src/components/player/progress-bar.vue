@@ -41,18 +41,24 @@
     },
     mounted () {
       /**
+       * 在 mounted 时组件没有渲染，所以 clientWidth 为 0，所以 this.barWidth 在这里获取是错误的
+       *
        * mounted 执行时组件挂载了但还没有渲染完成，因为渲染是异步的
        * 所以要想获取准确的 clientWidth 需要等待组件渲染完成，所以这里使用 nextTick 等待下一次 DOM 更新
        */
-      this.$nextTick(() => {
-        // 进度条总长度，和 touch 一样不必在 data 中返回
-        this.barWidth = this.$el.clientWidth - progressBtnWidth
-      })
+      // this.$nextTick(() => {
+      //   // 进度条总长度，和 touch 一样不必在 data 中返回
+      //   this.barWidth = this.$el.clientWidth - progressBtnWidth
+      //   console.log(this.$el, this.$el.clientWidth)
+      //   // debugger
+      // })
     },
     watch: {
       // 根据 props.progress 而自动计算 offset 偏移量
       progress (newProgress) {
-        this.offset = this.barWidth * newProgress
+        // 进度条总长度
+        const barWidth = this.$el.clientWidth - progressBtnWidth
+        this.offset = barWidth * newProgress
       }
     },
     computed: {
@@ -76,23 +82,30 @@
         const moveOffset = e.touches[0].pageX - this.touch.x1
         // 拖动后的播放进度条长度
         const tempWidth = this.touch.beginWidth + moveOffset
+        // 进度条总长度
+        const barWidth = this.$el.clientWidth - progressBtnWidth
 
         // 控制播放进度条长度在 0 到总长度之间
         // this.offset = Math.min(this.barWidth, Math.max(0, tempWidth))
 
         // 已播放长度除以总长度得出播放比例，且控制在 0 和 1 之间
-        const newProgress = Math.min(1, Math.max(0, tempWidth / this.barWidth))
+        const newProgress = Math.min(1, Math.max(0, tempWidth / barWidth))
         // 用总长度乘以播放比例得出实际拖动偏移量
-        this.offset = this.barWidth * newProgress
+        this.offset = barWidth * newProgress
         this.$emit('progress-changing', newProgress)
       },
       onTouchEnd () {
-        const progress = this.$refs.progress.clientWidth / this.barWidth
+        // 进度条总长度
+        const barWidth = this.$el.clientWidth - progressBtnWidth
+        const progress = this.$refs.progress.clientWidth / barWidth
         this.$emit('progress-changed', progress)
       },
       clickChangeProgress (e) {
+        // 进度条总长度
+        const barWidth = this.$el.clientWidth - progressBtnWidth
         // e.offsetX 减去进度条按钮宽度的一半，让按钮更加的跟手
-        const progress = (e.offsetX - progressBtnWidth / 2) / this.barWidth
+        const progress = (e.offsetX - progressBtnWidth / 2) / barWidth
+        // debugger
         this.$emit('progress-changed', progress)
       }
     }
