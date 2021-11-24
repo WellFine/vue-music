@@ -201,7 +201,11 @@ app.use(lazyPlygin, {
 
 如 `./src/components/base/index-list/useFixed.js` 中监听数据变化后重新计算 DOM 高度
 
-如 `./src/components/player/progress-bar.vue` 在 mounted 生命周期函数中获取组件的 clientWidth 时，因为 mounted 生命周期函数开始执行时，挂载上去了但还没渲染完成，且 mounted 不保证子组件也挂载完成，所以需要使用 nextTick 等待下一个 DOM 更新周期之后，以保证子组件也挂载完成计算出正确的 clientWidth
+**注意，下面的想法是错误的**，其实组件 mounted 后可能还没有渲染，所以此时获取组件 clientWidth 这种几何信息是获取不到的
+
+> 如 `./src/components/player/progress-bar.vue` 在 mounted 生命周期函数中获取组件的 clientWidth 时，因为 mounted 生命周期函数开始执行时，挂载上去了但还没渲染完成，且 mounted 不保证子组件也挂载完成，所以需要使用 nextTick 等待下一个 DOM 更新周期之后，以保证子组件也挂载完成计算出正确的 clientWidth
+
+**注意，上面的想法是错误的！**
 
 
 ### mounted 生命周期函数
@@ -368,6 +372,26 @@ vue-router 自带了 `.router-link-active` 这个 active-class，用于 `router-
 * `this.$router.back()` 路由回退
 * `this.$router.go(index)` 前进或后退 index 个页面
 
+### router-view 标签的 v-slot
+
+`<router-view>` 暴露了一个 `v-slot` API，主要使用 `<transition>` 和 `<keep-alive>` 组件来包裹你的路由组件
+
+```html
+<router-view v-slot="{ Component, router }">
+  <transition>
+    <keep-alive>
+      <component
+        :is="Component"
+        :key="route.meta.usePathKey ? route.path : undefined"
+      />
+    </keep-alive>
+  </transition>
+</router-view>
+```
+
+- `Component`: 要传递给 `<component>` 的 VNodes 是 prop
+- `route`: 解析出的标准化路由地址
+
 
 
 ## vuex 全局状态管理工具
@@ -437,7 +461,9 @@ Composition API 作为 vue3 一种新推出的开发模式，适用于逻辑复�
 
 
 
-# git commit 提交规范
+# git 相关
+
+## git commit 提交规范
 
 - feat：新增功能
 - fix：bug 修复
@@ -450,3 +476,7 @@ Composition API 作为 vue3 一种新推出的开发模式，适用于逻辑复�
 - ci：主要目的是修改项目继续集成流程 (例如 Travis，Jenkins，GitLab CI，Circle等) 的提交
 - chore：不属于以上类型的其他类，比如构建流程, 依赖管理
 - revert：回滚某个更早之前的提交
+
+## git 撤销 commit
+
+`git reset --soft HEAD^`，HEAD^ 表示上一个版本，即上一次的commit，也可以写成HEAD~1，如果进行两次的commit，想要都撤回，可以使用HEAD~2（慎用，之前的都会撤回）
