@@ -6,7 +6,7 @@
     <router-view v-slot="{ Component }">
       <!-- slide 的 transition 类定义在 @/assets/scss/base.scss 中 -->
       <transition name="slide">
-        <component :is="Component" :singer="selectedSinger"></component>
+        <component :is="Component" :data="selectedSinger"></component>
       </transition>
     </router-view>
 
