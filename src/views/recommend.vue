@@ -12,7 +12,11 @@
         <div class="recommend__list">
           <h2 class="recommend__list__title" v-show="!loading">热门歌单推荐</h2>
           <ul>
-            <li v-for="item in albums" :key="item.id" class="recommend__list__item">
+            <li
+              class="recommend__list__item"
+              v-for="item in albums" :key="item.id"
+              @click="onSelectAlbum(item)"
+            >
               <img v-lazy="item.pic" width="60" height="60" />
               <div class="item__info">
                 <h3 class="item__info__name">{{ item.username }}</h3>
@@ -23,6 +27,14 @@
         </div>
       </div>
     </com-scroll>
+
+    <!-- router-view 内嵌套 transition，transition 内嵌套 component 是 vue 官方推荐的嵌套顺序 -->
+    <router-view v-slot="{ Component }">
+      <!-- slide 的 transition 类定义在 @/assets/scss/base.scss 中 -->
+      <transition name="slide">
+        <component :is="Component" :data="selectedAlbum"></component>
+      </transition>
+    </router-view>
   </div>
 </template>
 
@@ -31,6 +43,9 @@ import Scroll from '@/components/wrap-scroll'
 import Slider from '@/components/base/slider/slider'
 
 import { getRecommend } from '@/service/recommend'
+
+import storage from 'good-storage'
+import { ALBUM_KEY } from '@/assets/js/constant'
 
 export default {
   name: 'recommend',
@@ -47,13 +62,25 @@ export default {
     return {
       sliders: [],
       albums: [],
-      loadingInfo: '正在载入...'
+      loadingInfo: '正在载入...',
+      selectedAlbum: null
     }
   },
   async created () {
     const { sliders, albums } = await getRecommend()
     this.sliders = sliders
     this.albums = albums
+  },
+  methods: {
+    onSelectAlbum (album) {
+      this.selectedAlbum = album
+      // 这里将数据缓存到 sessionStorage 中，用于 /recommend/:id 页面刷新取数据渲染
+      this.cacheAlbum(album)
+      this.$router.push(`/recommend/${album.id}`)
+    },
+    cacheAlbum (album) {
+      storage.session.set(ALBUM_KEY, album)
+    }
   }
 }
 </script>
