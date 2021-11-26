@@ -22,6 +22,7 @@
       <div class="list-wrapper">
         <song-list
           :songs="songs"
+          :rank="rank"
           @select="onSelectSong"
         ></song-list>
       </div>
@@ -53,7 +54,8 @@
       noResultInfo: {
         type: String,
         default: '抱歉，没有找到可播放的歌曲'
-      }
+      },
+      rank: Boolean // song-list 是否显示奖杯
     },
     components: {
       ComScroll: Scroll,
