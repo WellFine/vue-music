@@ -1,3 +1,8 @@
+/**
+ * 这里引入的都是实体样式，即有选择器的实际样式
+ * variable.scss 全局变量和 mixin.scss 混入函数这两个文件的内容都不是实体样式，是给 sass 提供的，所以在这里引入是没有意义的
+ * 而这两个又经常使用，所以直接在 vue.config.js 中配置 sass-loader，使其在全局引入
+ */
 @import "reset";
 @import "icon";
 @import "base";
