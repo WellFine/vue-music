@@ -16,7 +16,7 @@ export function processSongs (songs) {
       // map 是经过本地 node server 处理的一个歌曲 mid 对歌曲 url 的映射
       song.url = map[song.mid]
       return song
-    }).filter(song => song.url.includes('vkey')) // 如果歌曲 url 是有效的，那么 url 里面一定含有 vkey 这个字符串，如果没有则是无效 url，需要排除
+    }).filter(song => song.url && song.url.includes('vkey')) // 如果歌曲 url 是有效的，那么 url 里面一定含有 vkey 这个字符串，如果没有则是无效 url，需要排除
   })
 }
 
