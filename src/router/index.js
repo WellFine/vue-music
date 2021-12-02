@@ -27,7 +27,8 @@ const routes = [
     children: [{ path: ':id', component: TopDetail }]
   }, {
     path: '/search',
-    component: Search
+    component: Search,
+    children: [{ path: ':id', component: SingerDetail }]
   }
 ]
 
