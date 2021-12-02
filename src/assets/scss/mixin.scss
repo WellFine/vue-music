@@ -1,20 +1,22 @@
 // 背景图片
-@mixin bg-image($url) {
+@mixin bg-image ($url) {
+  // @2x 和 @3x 的图片应用在不同 dpi 的浏览器上，dpi 为 2 的浏览器用 @2x 就够了，@3x 是浪费
   background-image: url($url + "@2x.png");
   @media (-webkit-min-device-pixel-ratio: 3), (min-device-pixel-ratio: 3) {
+    // 如果 dpi 为 3 就用 @3x 的图片
     background-image: url($url + "@3x.png");
   }
 }
 
 // 禁止折行
-@mixin no-wrap() {
+@mixin no-wrap () {
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
 }
 
 // 扩展小图标按钮的点击区域
-@mixin extend-click() {
+@mixin extend-click () {
   position: relative;
   &:before {
     content: '';
@@ -24,4 +26,10 @@
     right: -10px;
     bottom: -10px;
   }
+}
+
+@mixin flex-column-between-normal () {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
