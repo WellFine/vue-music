@@ -153,6 +153,8 @@ BetterScroll use 插件后，别忘了开启配置项 `observeDOM: true`
 
 Slide 轮播图在使用时需要至少一条数据，所以采用数组循环时需要判断数组长度，否则数组最开始为空会报错
 
+#### pull-up 实现上拉加载
+
 
 ### [vue3-lazy](https://github.com/ustbhuangyi/vue3-lazy) 图片懒加载
 
@@ -183,6 +185,9 @@ app.use(lazyPlygin, {
 
 
 ### create-keyframe-animation 使用 js 定义 css3 animation
+
+
+### throttle-debounce 防抖与节流
 
 
 
